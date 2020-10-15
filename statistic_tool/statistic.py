@@ -5,7 +5,7 @@ import decimal as dec
 import scipy.stats
 import plotly
 import plotly.figure_factory as ff
-
+import math
 
 class data_process():
 
@@ -213,8 +213,9 @@ class data_process():
                 sum_sqrt += value**2
                 cnt += 1
         average = summ / cnt
-        sd = sum_sqrt - (cnt*(average**2))
-        return (round(abs(average),self.round_precision), round(sd,self.round_precision))
+        var = (sum_sqrt/cnt) - (average**2)
+        
+        return (round(abs(average),self.round_precision), round(math.sqrt(var),self.round_precision) ,round(var,self.round_precision))
 
 
 ##################

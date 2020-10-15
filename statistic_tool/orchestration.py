@@ -12,14 +12,15 @@ plist = ['2007pcap.txt','2015pcap.txt']
 title = ['type', 'srcIP', 'dstIP', 'sport', 'dport', 'proto', 'pktLen']
 KLD_filename = 'All_KLD.csv'
 Pearson_filename = 'All_Pearson.csv'
-error_avg_filename = 'All_error.avg.csv'
-error_std_filename = 'All_error.std.csv'
+error_avg_filename = 'All_error_avg.csv'
+error_std_filename = 'All_error_std.csv'
+error_var_filename = 'All_error_var.csv'
 
 All_KLD = []
 All_Pearson = []
 All_error_avg = []
 All_error_std = []
-
+All_error_var = []
 
 for nf_ in nf :
     for p in pcap:
@@ -72,7 +73,7 @@ for nf_ in nf :
                     proto=mydata.get_ave_sd(mydata.deviation_pktLen_value),
                     pktLen=mydata.get_ave_sd(mydata.deviation_proto_value),
                         )
-         
+            
                 
             error_avg = [ 
                 mydata.filename_format, error_stat['srcIP'][0], error_stat['dstIP'][0], error_stat['sport'][0], 
@@ -84,10 +85,15 @@ for nf_ in nf :
                 mydata.filename_format, error_stat['srcIP'][1], error_stat['dstIP'][1], error_stat['sport'][1], 
                                 error_stat['dport'][1], error_stat['proto'][1], error_stat['pktLen'][1]    
             ]   
+            
+            error_var =  [ 
+                mydata.filename_format, error_stat['srcIP'][2], error_stat['dstIP'][2], error_stat['sport'][2], 
+                                error_stat['dport'][2], error_stat['proto'][2], error_stat['pktLen'][2]    
+            ]  
 
             All_error_avg.append(error_avg)
             All_error_std.append(error_std)
-            
+            All_error_var.append(error_var)
             KLD_data = [ 
                 mydata.filename_format, KLD_dict['srcIP'], KLD_dict['dstIP'], KLD_dict['sport'], 
                                 KLD_dict['dport'], KLD_dict['proto'], KLD_dict['pktLen'] 
@@ -124,3 +130,9 @@ with open(error_std_filename , 'w', encoding='utf-8') as fout:
             writer.writerow(title)
             
             for data in All_error_std: writer.writerow(data)            
+
+with open(error_var_filename , 'w', encoding='utf-8') as fout:
+            writer = csv.writer(fout, delimiter=',')
+            writer.writerow(title)
+            
+            for data in All_error_var: writer.writerow(data) 
