@@ -12,10 +12,10 @@ class data_process():
     def __init__(self):
         #class parameter
         self.classifiation_reserved_digits = 2
-        
+        self.round_precision = 4
         #output parameter
         self.filename_format = ''
-        self.output_dir = './1008/' + self.filename_format + '/'
+        self.output_dir = './' + self.filename_format + '/'
         self.plot_output_file_name = '{0}.html'.format(self.filename_format)
         self.csv_output_file_name = '{0}.csv'.format(self.filename_format)
         self.chart_title = '{0}'.format(self.filename_format)
@@ -157,14 +157,16 @@ class data_process():
             except ZeroDivisionError: self.deviation_percent_proto_value.append(self.deviation_srcIP_value[i] - self.exact_srcIP_entropy[i])
 
     def cnt_classify(self,data):
+        d_range = 3
         part = 10**self.classifiation_reserved_digits
-        classification = [0.0001,]*part*2 + [0.0001]
+        classification = [0.0001,]*part*2*d_range + [0.0001]
         
         for item in data:
-            if item > 1: item = dec.Decimal(1)
-            if item < -1: item = dec.Decimal(-1)
-            key = int(item*part) + part
+            if item > d_range: item = dec.Decimal(d_range)
+            if item < -d_range: item = dec.Decimal(-d_range)
+            key = int(item*part) + d_range*part
             classification[key] += 1
+            
         
         len_data = len(data)
 
@@ -175,7 +177,10 @@ class data_process():
     def cal_average_KL_scipy(self,a, b):
         distance_ab = scipy.stats.entropy(pk=a, qk=b, base=2)
         distance_ba = scipy.stats.entropy(pk=b, qk=a, base=2)
-        return ((distance_ab+distance_ba)/2)
+        return round(((distance_ab+distance_ba)/2),self.round_precision)
+
+    def Pearson(self,a,b):
+        return round(scipy.stats.pearsonr(a,b)[0],self.round_precision)
 
     def dis_percent(self,data):
         new_data = []
@@ -209,7 +214,7 @@ class data_process():
                 cnt += 1
         average = summ / cnt
         sd = sum_sqrt - (cnt*(average**2))
-        return (average, sd)
+        return (round(abs(average),self.round_precision), round(sd,self.round_precision))
 
 
 ##################
@@ -303,6 +308,28 @@ class data_process():
             ]
             writer.writerow(csv_data)
 
+    def write_Pearson_csv(self):
+
+        Pearson_dict =  dict(
+        srcIP=self.Pearson( self.cnt_classify(self.deviation_srcIP_value), self.cnt_classify([0,]*len(self.deviation_srcIP_value)) ),
+        dstIP=self.Pearson( self.cnt_classify(self.deviation_dstIP_value), self.cnt_classify([0,]*len(self.deviation_dstIP_value)) ),
+        sport=self.Pearson( self.cnt_classify(self.deviation_sport_value), self.cnt_classify([0,]*len(self.deviation_sport_value)) ),
+        dport=self.Pearson( self.cnt_classify(self.deviation_dport_value), self.cnt_classify([0,]*len(self.deviation_dport_value)) ),
+        proto=self.Pearson( self.cnt_classify(self.deviation_proto_value), self.cnt_classify([0,]*len(self.deviation_proto_value)) ),
+        pktLen=self.Pearson( self.cnt_classify(self.deviation_pktLen_value), self.cnt_classify([0,]*len(self.deviation_pktLen_value)) )
+             )
+
+        with open(self.output_dir+self.csv_output_file_name, 'w', encoding='utf-8') as fout:
+            writer = csv.writer(fout, delimiter=',')
+            writer.writerow(self.csv_title)
+            
+            
+            csv_data = [ 
+                self.filename_format, Pearson_dict['srcIP'], Pearson_dict['dstIP'], Pearson_dict['sport'], 
+                                Pearson_dict['dport'], Pearson_dict['proto'], Pearson_dict['pktLen'] 
+            ]
+            writer.writerow(csv_data)
+
     def write_deviation_dis_info(self):
         with open(self.output_dir+ self.filename_format+'.txt', 'w') as fout:
             fout.write('Average / Standard Diviation\n\n')
@@ -348,6 +375,7 @@ class data_process():
         #data process
         self._cal_deviation()
 '''
+        self.write_Pearson_csv()
         self.write_KLD_csv()
         self.write_deviation_dis_info()
         self.plot_displot()
