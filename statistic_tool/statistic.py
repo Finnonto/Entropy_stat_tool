@@ -8,11 +8,13 @@ import plotly.figure_factory as ff
 import math
 
 class data_process():
-
-    def __init__(self):
+    
+    def __init__(self,normalization = 'orign'):
+        
         #class parameter
         self.classifiation_reserved_digits = 2
         self.round_precision = 4
+        self.nf = normalization #'total','distinct'
         #output parameter
         self.filename_format = ''
         self.output_dir = './' + self.filename_format + '/'
@@ -21,8 +23,7 @@ class data_process():
         self.chart_title = '{0}'.format(self.filename_format)
         self.csv_title = ['type', 'srcIP', 'dstIP', 'sport', 'dport', 'proto', 'pktLen']
         # file parameter
-        self.base_dir_path = '/mnt/c/Users/Lab108/Desktop/analyzed/'
-        self.target_dir_path = '/mnt/c/Users/Lab108/Desktop/analyzed/'
+
         self.pcap = []
 
         #csv parameter
@@ -65,42 +66,80 @@ class data_process():
 #################
 #input functions#
 #################
-
     def read_pcap(self,filename):
         f = open(filename,"r")
         self.pcap = f.read().splitlines()
 
     def read_csv(self,pcap,base_filepath,target_filepath):
         ## base
+        
         for item in pcap:
             file_name = 'Analysis_'+ self.mode + '_' + self.time_interval + '_' + item
-            with open(self.base_dir_path+base_filepath+file_name+'/'+file_name+'.csv', newline='') as fin:
+            print(base_filepath+file_name+'/'+file_name+'.csv')
+            with open(base_filepath+file_name+'/'+file_name+'.csv', newline='') as fin:
                 rows = csv.reader(fin)
                 for row in rows:
+                    
                     try:
-                        self.exact_srcIP_entropy.append(float(row[1]))
-                        self.exact_dstIP_entropy.append(float(row[3]))
-                        self.exact_sport_entropy.append(float(row[5]))
-                        self.exact_dport_entropy.append(float(row[7]))
-                        self.exact_pktLen_entropy.append(float(row[11]))
-                        self.exact_proto_entropy.append(float(row[9]))
+                        if self.nf == 'orign' :self.exact_srcIP_entropy.append(float(row[1]))
+                        elif self.nf == 'total':self.exact_srcIP_entropy.append(float(row[1])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.exact_srcIP_entropy.append(float(row[1])/math.log(float(row[2])))
+
+                        if self.nf == 'orign' :self.exact_dstIP_entropy.append(float(row[3]))
+                        elif self.nf == 'total':self.exact_dstIP_entropy.append(float(row[3])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.exact_dstIP_entropy.append(float(row[3])/math.log(float(row[4])))
+
+                        if self.nf == 'orign' :self.exact_sport_entropy.append(float(row[5]))
+                        elif self.nf == 'total':self.exact_sport_entropy.append(float(row[5])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.exact_sport_entropy.append(float(row[5])/math.log(float(row[6])))
+
+                        if self.nf == 'orign' :self.exact_dport_entropy.append(float(row[7]))
+                        elif self.nf == 'total':self.exact_dport_entropy.append(float(row[7])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.exact_dport_entropy.append(float(row[7])/math.log(float(row[8])))
+
+                        if self.nf == 'orign' :self.exact_pktLen_entropy.append(float(row[11]))
+                        elif self.nf == 'total':self.exact_pktLen_entropy.append(float(row[11])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.exact_pktLen_entropy.append(float(row[11])/math.log(float(row[12])))
+                            
+                        if self.nf == 'orign' :self.exact_proto_entropy.append(float(row[9]))
+                        elif self.nf == 'total':self.exact_proto_entropy.append(float(row[9])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.exact_proto_entropy.append(float(row[9])/math.log(float(row[10])))
+                        
                     except ValueError:
                         # text does not accept
                         pass
         ## target
-      
+        
         for item in pcap:
             file_name = 'Analysis_'+ self.mode + '_' + self.time_interval + '_' + item
-            with open(self.target_dir_path+target_filepath+file_name+'/'+file_name+'.csv', newline='') as fin:
+            print(target_filepath+file_name+'/'+file_name+'.csv')
+            with open(target_filepath+file_name+'/'+file_name+'.csv', newline='') as fin:
                 rows = csv.reader(fin)
                 for row in rows:
                     try:
-                        self.est_srcIP_entropy.append(float(row[1]))
-                        self.est_dstIP_entropy.append(float(row[3]))
-                        self.est_sport_entropy.append(float(row[5]))
-                        self.est_dport_entropy.append(float(row[7]))
-                        self.est_pktLen_entropy.append(float(row[11]))
-                        self.est_proto_entropy.append(float(row[9]))
+                        if self.nf == 'orign' :self.est_srcIP_entropy.append(float(row[1]))
+                        elif self.nf == 'total':self.est_srcIP_entropy.append(float(row[1])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.est_srcIP_entropy.append(float(row[1])/math.log(float(row[2])))
+
+                        if self.nf == 'orign' :self.est_dstIP_entropy.append(float(row[3]))
+                        elif self.nf == 'total':self.est_dstIP_entropy.append(float(row[3])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.est_dstIP_entropy.append(float(row[3])/math.log(float(row[4])))
+
+                        if self.nf == 'orign' :self.est_sport_entropy.append(float(row[5]))
+                        elif self.nf == 'total':self.est_sport_entropy.append(float(row[5])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.est_sport_entropy.append(float(row[5])/math.log(float(row[6])))
+
+                        if self.nf == 'orign' :self.est_dport_entropy.append(float(row[7]))
+                        elif self.nf == 'total':self.est_dport_entropy.append(float(row[7])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.est_dport_entropy.append(float(row[7])/math.log(float(row[8])))
+
+                        if self.nf == 'orign' :self.est_pktLen_entropy.append(float(row[11]))
+                        elif self.nf == 'total':self.est_pktLen_entropy.append(float(row[11])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.est_pktLen_entropy.append(float(row[11])/math.log(float(row[12])))
+                            
+                        if self.nf == 'orign' :self.est_proto_entropy.append(float(row[9]))
+                        elif self.nf == 'total':self.est_proto_entropy.append(float(row[9])/math.log(float(row[15])))
+                        elif self.nf == 'distinct':self.est_proto_entropy.append(float(row[9])/math.log(float(row[10])))
                     except ValueError:
                         # text does not accept
                         pass
@@ -217,7 +256,12 @@ class data_process():
         
         return (round(abs(average),self.round_precision), round(math.sqrt(var),self.round_precision) ,round(var,self.round_precision))
 
+    def get_difference(self,data1,data2):
+        diff = []
+        for index in range(len(data1)):
+            diff.append(round(abs(data1[index]-data2[index]),self.round_precision))
 
+        return diff
 ##################
 #output functions#
 ##################
@@ -351,7 +395,7 @@ class data_process():
             fout.write('Destination Port:' + str(self.get_ave_sd(self.deviation_percent_dport_value)) + '\n')
             fout.write('Packet Length:' + str(self.get_ave_sd(self.deviation_percent_pktLen_value)) + '\n')
             fout.write('Protocol:' + str(self.get_ave_sd(self.deviation_percent_proto_value)) + '\n')
-
+    
     def __mkdir(self):
         os.system('mkdir {0}'.format(self.filename_format))        
 
@@ -371,7 +415,7 @@ class data_process():
         self.read_pcap(pcap_namelist)
         self.read_csv(self.pcap,base_filepath,target_filepath)
         # make new file
-#        self.__mkdir()
+        #self.__mkdir()
 
         #data process
         self._cal_deviation()

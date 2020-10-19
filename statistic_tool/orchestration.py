@@ -1,51 +1,53 @@
 import statistic as dp
 import csv
+import os
 
+
+
+base_path = '/mnt/d/analyzed/'
+target_path = '/mnt/d/analyzed/'
 
 
 nf = ['orign','total',"distinct" ]
 al = ['clifford','pingli']
-pcap = ['CAIDA2007','MAWI2015']
-plist = ['2007pcap.txt','2015pcap.txt']
+pcap = ['MAWI_CAIDA']
+
+
+
 
 
 title = ['type', 'srcIP', 'dstIP', 'sport', 'dport', 'proto', 'pktLen']
+diff_title =['type']
 KLD_filename = 'All_KLD.csv'
 Pearson_filename = 'All_Pearson.csv'
 error_avg_filename = 'All_error_avg.csv'
 error_std_filename = 'All_error_std.csv'
 error_var_filename = 'All_error_var.csv'
-
+diff_SipDip_filename = 'All_diff_SipDip.csv'
 All_KLD = []
 All_Pearson = []
 All_error_avg = []
 All_error_std = []
 All_error_var = []
+All_diff_SipDip =[]
+diff_exact_SipDip = []
+
 
 for nf_ in nf :
+
     for p in pcap:
         for al_ in al :
-            if p =='CAIDA2007':
-                mydata = dp.data_process()
-                mydata.main(
-                        output_name="{1}2exact_{2}_{0}".format(nf_,al_,p),
-                        base_filepath="{0}/exact_{1}_30/".format(p,nf_),
-                        target_filepath="{2}/{1}_{0}_30/".format(nf_,al_,p),
-                        pcap_namelist=plist[0]
-                )
+            mydata = dp.data_process(normalization=nf_)
+            
+            mydata.main(
+                    output_name="{0}2exact_{1}_{2}".format(al_,p,nf_),
+                    base_filepath="{0}{1}/exact_orign_30/".format(base_path,p),
+                    target_filepath="{0}{1}/{2}_orign_30/".format(target_path,p,al_),
+                    pcap_namelist= p+'.txt'
+            )
                 
-            else:
-                mydata = dp.data_process()
-                mydata.main(
-                        output_name="{1}2exact_{2}_{0}".format(nf_,al_,p),
-                        base_filepath="{0}/exact_{1}_30/".format(p,nf_),
-                        target_filepath="{2}/{1}_{0}_30/".format(nf_,al_,p),
-                        pcap_namelist=plist[1]
-                )
+            
                 
-
-                
-           
 
             KLD_dict =  dict(
                     srcIP=mydata.cal_average_KL_scipy( mydata.cnt_classify(mydata.deviation_srcIP_value), mydata.cnt_classify([0,]*len(mydata.deviation_srcIP_value)) ),
@@ -105,6 +107,14 @@ for nf_ in nf :
                                 Pearson_dict['dport'], Pearson_dict['proto'], Pearson_dict['pktLen'] 
             ]
             All_Pearson.append(Pearson_data)
+            
+
+            All_diff_SipDip.append([al_+'_'+nf_]+mydata.get_difference(mydata.est_srcIP_entropy,mydata.est_dstIP_entropy))
+        All_diff_SipDip.append(['exact_'+nf_]+mydata.get_difference(mydata.exact_srcIP_entropy,mydata.exact_dstIP_entropy))
+
+
+diff_title += [x for x in range(len(mydata.est_dstIP_entropy))]
+
 
 
 with open(KLD_filename, 'w', encoding='utf-8') as fout:
@@ -136,3 +146,10 @@ with open(error_var_filename , 'w', encoding='utf-8') as fout:
             writer.writerow(title)
             
             for data in All_error_var: writer.writerow(data) 
+
+
+with open(diff_SipDip_filename , 'w', encoding='utf-8') as fout:
+            writer = csv.writer(fout, delimiter=',')
+            writer.writerow(diff_title)
+    
+            for data in All_diff_SipDip : writer.writerow(data)             
